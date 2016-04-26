@@ -11,11 +11,6 @@ import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/*
-This service handle all the calculation of number of request
-and number of occurrences in all the files
- */
-
 @Service
 public class ProcessingService {
 
@@ -58,9 +53,6 @@ public class ProcessingService {
 
     }
 
-    /*
-    Scan each line to see if the word exists
-     */
 
     public void beginScanFile(Scanner inputFile) throws FileNotFoundException {
         List<String> lines = new ArrayList<>();

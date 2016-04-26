@@ -31,10 +31,10 @@ Controller to handle REST endpoint call with a String parameter
 
         List<PlayerRank> rankList = processingService.findRank();
         StringBuffer result = new StringBuffer();
-        result.append("The following list shows the rank: ******\n");
+        result.append("The following list shows the rank:  \n");
 
         for(PlayerRank playerRank : rankList){
-            result.append("Player: " + playerRank.getName() + ", Win: " + playerRank.getWin() + ", Tie: " + playerRank.getTie() + ", Loss: " + playerRank.getLoss() + "****\n" );
+            result.append("Player: " + playerRank.getName() + ", Win: " + playerRank.getWin() + ", Tie: " + playerRank.getTie() + ", Loss: " + playerRank.getLoss() + "\n" );
         }
 
         return new ResponseEntity<String>(result.toString(), OK);
