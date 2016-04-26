@@ -1,7 +1,7 @@
 package assignment.service;
 
 
-import assignment.dao.Result;
+import assignment.dao.PlayerRank;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
 
@@ -20,32 +20,28 @@ and number of occurrences in all the files
 public class ProcessingService {
 
     @Setter
-    @Resource(name = "wordMap")
-    private ConcurrentHashMap<String, Result> map;
+    @Resource(name = "rankMap")
+    private ConcurrentHashMap<String, PlayerRank> rankMap;
 
     @Setter
     private String txtfilesPath = "src/main/resources/txtfiles/";
 
+    private List<PlayerRank> rankList = new ArrayList<>();
 
-    public Result countWord(String word) throws FileNotFoundException {
-        Result result;
-        if(map.containsKey(word)){
-            result = map.get(word);
-            result.setNumberOfRequests(result.getNumberOfRequests() + 1);
-            map.put(word, result);
-        }else{
-            map.putIfAbsent(word, new Result(word, 1, 0));
-            result = beginScanFolder(word);
-            map.put(word, result);
-        }
 
-        return result;
+    public List<PlayerRank> findRank() throws FileNotFoundException {
+
+        beginScanFolder();
+        rankList.addAll(rankMap.values());
+        Collections.sort(rankList, new PlayerRankComparator());
+
+        return rankList;
     }
 
     /*
     Scan every file in the path
      */
-    public Result beginScanFolder(String word) throws FileNotFoundException {
+    public void beginScanFolder() throws FileNotFoundException {
 
         File folder = new File(txtfilesPath);
         File[] listOfFiles = folder.listFiles();
@@ -54,11 +50,11 @@ public class ProcessingService {
             File file = listOfFiles[i];
             if (file.isFile() && file.getName().endsWith(".txt")) {
                 Scanner inputFile = new Scanner(file);
-                beginScanFile(inputFile, word);
+                if(inputFile != null) {
+                    beginScanFile(inputFile);
+                }
             }
         }
-
-        return map.get(word);
 
     }
 
@@ -66,29 +62,80 @@ public class ProcessingService {
     Scan each line to see if the word exists
      */
 
-    public void beginScanFile(Scanner inputFile, String word) throws FileNotFoundException {
+    public void beginScanFile(Scanner inputFile) throws FileNotFoundException {
         List<String> lines = new ArrayList<>();
-        Result result = map.get(word);
 
+        inputFile.nextLine();
         while(inputFile.hasNextLine()) {
             String input = inputFile.nextLine();
             lines.add(input);
         }
 
         for(String line : lines){
-            String lettersOnly = line.replaceAll("[^a-zA-Z\\s]", " ").trim();
-            String[] stringList = lettersOnly.split("\\s+");
-
-            for(String eachString : stringList){
-                if(eachString.equals(word)){
-                    result.setNumberOfOccurrences(result.getNumberOfOccurrences() + 1);
-                }
+            String[] stringList = line.split(",");
+            if(stringList == null || stringList.length != 4){
+                continue;
             }
+            String PlayerOne = stringList[0];
+            String PlayerTwo = stringList[2];
+            int PlayerOneScore = Integer.valueOf(stringList[1]);
+            int PlayerTwoScore = Integer.valueOf(stringList[3]);
 
+            if(PlayerOneScore > PlayerTwoScore){
+                updateRankMap(PlayerOne, PlayerTwo);
+            }else{
+                updateRankMap(PlayerTwo, PlayerOne);
+            }
         }
-
-        map.put(word, result);
-
     }
 
+    public void updateRankMap(String winner, String loser){
+        if(rankMap.containsKey(winner)){
+            PlayerRank winnerRank = rankMap.get(winner);
+            winnerRank.setWin(winnerRank.getWin() + 1);
+            rankMap.put(winner, winnerRank);
+        }else{
+            PlayerRank winnerRank = new PlayerRank(winner, 1, 0, 0);
+            rankMap.put(winner, winnerRank);
+        }
+
+        if(rankMap.containsKey(loser)){
+            PlayerRank loserRank = rankMap.get(loser);
+            loserRank.setLoss(loserRank.getLoss() + 1);
+            rankMap.put(loser, loserRank);
+        }else{
+            PlayerRank loserRank = new PlayerRank(loser, 0, 0, 1);
+            rankMap.put(loser, loserRank);
+        }
+    }
+
+
+
+}
+
+class PlayerRankComparator implements Comparator<PlayerRank>{
+
+    @Override
+    public int compare(PlayerRank o1, PlayerRank o2) {
+        if(o1.getWin() > o2.getWin()){
+            return -1;
+        }
+        if(o1.getWin() < o2.getWin()){
+            return 1;
+        }
+        if(o1.getTie() > o2.getTie()){
+            return -1;
+        }
+        if(o1.getTie() < o2.getTie()){
+            return 1;
+        }
+        if(o1.getLoss() < o2.getLoss()){
+            return -1;
+        }
+        if(o1.getLoss() > o2.getLoss()){
+            return 1;
+        }
+
+        return o1.getName().compareTo(o2.getName());
+    }
 }

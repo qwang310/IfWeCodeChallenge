@@ -9,10 +9,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Result {
+public class PlayerRank {
 
-    private String word;
-    private int numberOfRequests;
-    private int numberOfOccurrences;
+    private String name;
+    private int win;
+    private int tie;
+    private int loss;
 
 }
