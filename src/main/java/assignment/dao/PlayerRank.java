@@ -13,7 +13,6 @@ public class PlayerRank {
 
     private String name;
     private int win;
-    private int tie;
     private int loss;
 
 }
